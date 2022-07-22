@@ -17,7 +17,7 @@ import re
 import warnings
 from logging.config import fileConfig
 from pathlib import Path
-from shutil import copyfile, move
+from shutil import copyfile, copy2, rmtree
 from textwrap import dedent
 from typing import Dict, Mapping, Optional, Sequence, Tuple, Union
 
@@ -159,7 +159,10 @@ def _download_from_hf_hub(repo: str, name: str, bundle_dir: str):
     download_path = os.path.join(bundle_dir, name)
     if not os.path.exists(download_path):
         os.mkdir(download_path)
-    move(snapshot_folder, download_path)
+    files = os.listdir(snapshot_folder)
+    for f in files:
+        snapshot_file = os.path.join(snapshot_folder, f)
+        copy2(snapshot_file, download_path)
 
 
 def _process_bundle_dir(bundle_dir: Optional[PathLike] = None):
@@ -196,6 +199,9 @@ def download(
 
         # Execute this module as a CLI entry, and download bundle via URL:
         python -m monai.bundle download --name "bundle_name" --url <url>
+
+        # Execute this module as a CLI entry, and download bundle from Hugging Face Hub:
+        python -m monai.bundle download --name "bundle_name" --source "hf_hub" --repo "repo_owner/repo_name"
 
         # Set default args of `run` in a JSON / YAML file, help to record and simplify the command line.
         # Other args still can override the default args at runtime.

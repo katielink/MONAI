@@ -112,9 +112,7 @@ class TestDownload(unittest.TestCase):
                 cmd += ["--bundle_dir", tempdir, "--repo", repo, "--progress", "False"]
                 subprocess.check_call(cmd)
                 for file in bundle_files:
-                    # TODO: update to be the same as other tests with bundle_name
-                    file_path = os.path.join(tempdir, file)
-                    print(file_path)
+                    file_path = os.path.join(tempdir, bundle_name, file)
                     self.assertTrue(os.path.exists(file_path))
                     if file == "network.json":
                         self.assertTrue(check_hash(filepath=file_path, val=hash_val))
