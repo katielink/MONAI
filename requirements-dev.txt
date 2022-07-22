@@ -51,3 +51,4 @@ pynrrd
 pre-commit
 pydicom
 h5py
+huggingface_hub

@@ -17,12 +17,13 @@ import re
 import warnings
 from logging.config import fileConfig
 from pathlib import Path
-from shutil import copyfile
+from shutil import copyfile, move
 from textwrap import dedent
 from typing import Dict, Mapping, Optional, Sequence, Tuple, Union
 
 import torch
 from torch.cuda import is_available
+from monai import bundle
 
 from monai.apps.utils import _basename, download_url, extractall, get_logger
 from monai.bundle.config_item import ConfigComponent
@@ -38,6 +39,7 @@ validate, _ = optional_import("jsonschema", name="validate")
 ValidationError, _ = optional_import("jsonschema.exceptions", name="ValidationError")
 Checkpoint, has_ignite = optional_import("ignite.handlers", IgniteInfo.OPT_IMPORT_VERSION, min_version, "Checkpoint")
 requests_get, has_requests = optional_import("requests", name="get")
+hf_snapshot_download, _ = optional_import("huggingface_hub", name="snapshot_download")
 
 logger = get_logger(module_name=__name__)
 
@@ -141,6 +143,25 @@ def _download_from_github(repo: str, download_path: Path, filename: str, progres
     extractall(filepath=filepath, output_dir=download_path, has_base=True)
 
 
+def _download_from_hf_hub(repo: str, name: str, bundle_dir: str):
+    """
+    Download an entire public MONAI bundle from Hugging Face Hub.
+    Currently this function only supports downloading public bundles.  
+
+    Args:
+        repo: Hugging Face repo path, should be in the form of `repo_owner/repo_name`
+        name: name of the directory within the bundle_dir where the bundle files will be saved
+        bundle_dir: directory where the bundle will be copied to
+    """
+    if len(repo.split("/")) != 2:
+        raise ValueError("if source is `hf_hub`, repo should be in the form `repo_owner/repo_name`")
+    snapshot_folder = hf_snapshot_download(repo_id=repo)
+    download_path = os.path.join(bundle_dir, name)
+    if not os.path.exists(download_path):
+        os.mkdir(download_path)
+    move(snapshot_folder, download_path)
+
+
 def _process_bundle_dir(bundle_dir: Optional[PathLike] = None):
     if bundle_dir is None:
         get_dir, has_home = optional_import("torch.hub", name="get_dir")
@@ -188,7 +209,7 @@ def download(
         bundle_dir: target directory to store the downloaded data.
             Default is `bundle` subfolder under `torch.hub.get_dir()`.
         source: storage location name. This argument is used when `url` is `None`.
-            "github" is currently the only supported value.
+            "github" or "hf_hub" are currently the only supported values.
         repo: repo name. This argument is used when `url` is `None`.
             If `source` is "github", it should be in the form of "repo_owner/repo_name/release_tag".
         url: url to download the data. If not `None`, data will be downloaded directly
@@ -221,6 +242,10 @@ def download(
         if name_ is None:
             raise ValueError(f"To download from source: Github, `name` must be provided, got {name_}.")
         _download_from_github(repo=repo_, download_path=bundle_dir_, filename=name_, progress=progress_)
+    elif source_ == "hf_hub":
+        if name_ is None:
+            raise ValueError(f"To download from source: Hugging Face Hub, `name` must be provided, got {name_}.")
+        _download_from_hf_hub(repo=repo_, name=name_, bundle_dir=bundle_dir_)
     else:
         raise NotImplementedError(
             f"Currently only download from provided URL in `url` or Github is implemented, got source: {source_}."
@@ -252,9 +277,10 @@ def load(
         bundle_dir: directory the weights/TorchScript module will be loaded from.
             Default is `bundle` subfolder under `torch.hub.get_dir()`.
         source: storage location name. This argument is used when `model_file` is not existing locally and need to be
-            downloaded first. "github" is currently the only supported value.
+            downloaded first. "github" and "hf_hub" are currently the only supported values.
         repo: repo name. This argument is used when `model_file` is not existing locally and need to be
             downloaded first. If `source` is "github", it should be in the form of "repo_owner/repo_name/release_tag".
+            If `source` is "hf_hub", it should be in the form of "repo_owner/repo_name".
         progress: whether to display a progress bar when downloading.
         device: target device of returned weights or module, if `None`, prefer to "cuda" if existing.
         key_in_ckpt: for nested checkpoint like `{"model": XXX, "optimizer": XXX, ...}`, specify the key of model

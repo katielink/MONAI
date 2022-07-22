@@ -1,17 +1,19 @@
 # Installation Guide
 
 ## Table of Contents
-1. [From PyPI](#from-pypi)
-	1. [Milestone release](#milestone-release)
-	2. [Weekly preview release](#weekly-preview-release)
-1. [From conda-forge](#from-conda-forge)
-2. [From GitHub](#from-github)
-	1. [System-wide](#milestone-release)
-	2. [Editable](#weekly-preview-release)
-3. [Validating the install](#validating-the-install)
-4. [MONAI version string](#monai-version-string)
-5. [From DockerHub](#from-dockerhub)
-6. [Installing the recommended dependencies](#installing-the-recommended-dependencies)
+- [Installation Guide](#installation-guide)
+	- [Table of Contents](#table-of-contents)
+	- [From PyPI](#from-pypi)
+		- [Milestone release](#milestone-release)
+		- [Weekly preview release](#weekly-preview-release)
+	- [From conda-forge](#from-conda-forge)
+	- [From GitHub](#from-github)
+		- [Option 1 (as a part of your system-wide module):](#option-1-as-a-part-of-your-system-wide-module)
+		- [Option 2 (editable installation):](#option-2-editable-installation)
+	- [Validating the install](#validating-the-install)
+	- [MONAI version string](#monai-version-string)
+	- [From DockerHub](#from-dockerhub)
+	- [Installing the recommended dependencies](#installing-the-recommended-dependencies)
 
 ---
 
@@ -190,9 +192,9 @@ Since MONAI v0.2.0, the extras syntax such as `pip install 'monai[nibabel]'` is 
 
 - The options are
 ```
-[nibabel, skimage, pillow, tensorboard, gdown, ignite, torchvision, itk, tqdm, lmdb, psutil, cucim, openslide, pandas, einops, transformers, mlflow, matplotlib, tensorboardX, tifffile, imagecodecs, pyyaml, fire, jsonschema, pynrrd, pydicom, h5py]
+[nibabel, skimage, pillow, tensorboard, gdown, ignite, torchvision, itk, tqdm, lmdb, psutil, cucim, openslide, pandas, einops, transformers, mlflow, matplotlib, tensorboardX, tifffile, imagecodecs, pyyaml, fire, jsonschema, pynrrd, pydicom, h5py, huggingface_hub]
 ```
 which correspond to `nibabel`, `scikit-image`, `pillow`, `tensorboard`,
-`gdown`, `pytorch-ignite`, `torchvision`, `itk`, `tqdm`, `lmdb`, `psutil`, `cucim`, `openslide-python`, `pandas`, `einops`, `transformers`, `mlflow`, `matplotlib`, `tensorboardX`, `tifffile`, `imagecodecs`, `pyyaml`, `fire`, `jsonschema`, `pynrrd`, `pydicom`, h5py , respectively.
+`gdown`, `pytorch-ignite`, `torchvision`, `itk`, `tqdm`, `lmdb`, `psutil`, `cucim`, `openslide-python`, `pandas`, `einops`, `transformers`, `mlflow`, `matplotlib`, `tensorboardX`, `tifffile`, `imagecodecs`, `pyyaml`, `fire`, `jsonschema`, `pynrrd`, `pydicom`, `h5py`, `huggingface_hub`, respectively.
 
 - `pip install 'monai[all]'` installs all the optional dependencies.

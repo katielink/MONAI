@@ -31,3 +31,4 @@ jsonschema
 pynrrd
 pydicom
 h5py
+huggingface_hub
