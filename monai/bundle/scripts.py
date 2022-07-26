@@ -17,7 +17,7 @@ import re
 import warnings
 from logging.config import fileConfig
 from pathlib import Path
-from shutil import copyfile, copy2, rmtree
+from shutil import copyfile, copytree
 from textwrap import dedent
 from typing import Dict, Mapping, Optional, Sequence, Tuple, Union
 
@@ -159,10 +159,7 @@ def _download_from_hf_hub(repo: str, name: str, bundle_dir: str):
     download_path = os.path.join(bundle_dir, name)
     if not os.path.exists(download_path):
         os.mkdir(download_path)
-    files = os.listdir(snapshot_folder)
-    for f in files:
-        snapshot_file = os.path.join(snapshot_folder, f)
-        copy2(snapshot_file, download_path)
+    copytree(snapshot_folder, download_path, dirs_exist_ok=True)
 
 
 def _process_bundle_dir(bundle_dir: Optional[PathLike] = None):
