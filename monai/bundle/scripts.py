@@ -157,8 +157,6 @@ def _download_from_hf_hub(repo: str, download_path: str, filename: str):
         raise ValueError("if source is `hf_hub`, repo should be in the form `repo_owner/repo_name`")
     snapshot_folder = huggingface_hub.snapshot_download(repo_id=repo, cache_dir=download_path)
     download_dir = os.path.join(download_path, filename)
-    if not os.path.exists(download_dir):
-        os.mkdir(download_dir)
     copytree(snapshot_folder, download_dir, dirs_exist_ok=True)
     rmtree(snapshot_folder)
 
