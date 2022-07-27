@@ -108,7 +108,7 @@ class TestDownload(unittest.TestCase):
         with skip_if_downloading_fails():
             # download a whole bundle from hugging face hub
             with tempfile.TemporaryDirectory() as tempdir:
-                cmd = ["coverage", "run", "-m", "monai.bundle", "download", "--name", bundle_name, "--source", "hf_hub"]
+                cmd = ["coverage", "run", "-m", "monai.bundle", "download", "--name", bundle_name, "--source", "huggingface_hub"]
                 cmd += ["--bundle_dir", tempdir, "--repo", repo, "--progress", "False"]
                 subprocess.check_call(cmd)
                 for file in bundle_files:

@@ -17,7 +17,7 @@ import re
 import warnings
 from logging.config import fileConfig
 from pathlib import Path
-from shutil import copyfile, copytree
+from shutil import copyfile, copytree, rmtree
 from textwrap import dedent
 from typing import Dict, Mapping, Optional, Sequence, Tuple, Union
 
@@ -39,7 +39,7 @@ validate, _ = optional_import("jsonschema", name="validate")
 ValidationError, _ = optional_import("jsonschema.exceptions", name="ValidationError")
 Checkpoint, has_ignite = optional_import("ignite.handlers", IgniteInfo.OPT_IMPORT_VERSION, min_version, "Checkpoint")
 requests_get, has_requests = optional_import("requests", name="get")
-hf_snapshot_download, _ = optional_import("huggingface_hub", name="snapshot_download")
+huggingface_hub, _ = optional_import("huggingface_hub")
 
 logger = get_logger(module_name=__name__)
 
@@ -143,23 +143,24 @@ def _download_from_github(repo: str, download_path: Path, filename: str, progres
     extractall(filepath=filepath, output_dir=download_path, has_base=True)
 
 
-def _download_from_hf_hub(repo: str, name: str, bundle_dir: str):
+def _download_from_hf_hub(repo: str, download_path: str, filename: str):
     """
     Download an entire public MONAI bundle from Hugging Face Hub.
     Currently this function only supports downloading public bundles.  
 
     Args:
         repo: Hugging Face repo path, should be in the form of `repo_owner/repo_name`
-        name: name of the directory within the bundle_dir where the bundle files will be saved
-        bundle_dir: directory where the bundle will be copied to
+        download_path: directory where the bundle will be copied to
+        filename: name of the directory within the bundle_dir where the bundle files will be saved
     """
     if len(repo.split("/")) != 2:
         raise ValueError("if source is `hf_hub`, repo should be in the form `repo_owner/repo_name`")
-    snapshot_folder = hf_snapshot_download(repo_id=repo)
-    download_path = os.path.join(bundle_dir, name)
-    if not os.path.exists(download_path):
-        os.mkdir(download_path)
-    copytree(snapshot_folder, download_path, dirs_exist_ok=True)
+    snapshot_folder = huggingface_hub.snapshot_download(repo_id=repo, cache_dir=download_path)
+    download_dir = os.path.join(download_path, filename)
+    if not os.path.exists(download_dir):
+        os.mkdir(download_dir)
+    copytree(snapshot_folder, download_dir, dirs_exist_ok=True)
+    rmtree(snapshot_folder)
 
 
 def _process_bundle_dir(bundle_dir: Optional[PathLike] = None):
@@ -212,7 +213,7 @@ def download(
         bundle_dir: target directory to store the downloaded data.
             Default is `bundle` subfolder under `torch.hub.get_dir()`.
         source: storage location name. This argument is used when `url` is `None`.
-            "github" or "hf_hub" are currently the only supported values.
+            "github" or "huggingface_hub" are currently the only supported values.
         repo: repo name. This argument is used when `url` is `None`.
             If `source` is "github", it should be in the form of "repo_owner/repo_name/release_tag".
         url: url to download the data. If not `None`, data will be downloaded directly
@@ -245,13 +246,13 @@ def download(
         if name_ is None:
             raise ValueError(f"To download from source: Github, `name` must be provided, got {name_}.")
         _download_from_github(repo=repo_, download_path=bundle_dir_, filename=name_, progress=progress_)
-    elif source_ == "hf_hub":
+    elif source_ == "huggingface_hub":
         if name_ is None:
             raise ValueError(f"To download from source: Hugging Face Hub, `name` must be provided, got {name_}.")
-        _download_from_hf_hub(repo=repo_, name=name_, bundle_dir=bundle_dir_)
+        _download_from_hf_hub(repo=repo_, download_path=bundle_dir_, filename=name_)
     else:
         raise NotImplementedError(
-            f"Currently only download from provided URL in `url` or Github is implemented, got source: {source_}."
+            f"Currently only download from provided URL in `url`, Github, or Hugging Face Hub is implemented, got source: {source_}."
         )
 
 
